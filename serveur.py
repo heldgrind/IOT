@@ -5,17 +5,17 @@ import argparse
 import signal
 import sys
 import socket
-import SocketServer
+import socketserver
 import serial
 import threading
 
-HOST           = "0.0.0.0"
+HOST           = "127.0.0.1"
 UDP_PORT       = 10000
 MICRO_COMMANDS = ["TL" , "LT"]
 FILENAME        = "values.txt"
 LAST_VALUE      = ""
 
-class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
+class ThreadedUDPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         data = self.request[0].strip()
@@ -23,21 +23,24 @@ class ThreadedUDPRequestHandler(SocketServer.BaseRequestHandler):
         current_thread = threading.current_thread()
         print("{}: client: {}, wrote: {}".format(current_thread.name, self.client_address, data))
         if data != "":
-                        if data in MICRO_COMMANDS: # Send message through UART
-                                sendUARTMessage(data)
+                        socket.sendto(data.upper(), self.client_address)
+                        # if data in MICRO_COMMANDS: # Send message through UART
+                        #         sendUARTMessage(data)
                                 
-                        elif data == "getValues()": # Sent last value received from micro-controller
-                                socket.sendto(LAST_VALUE, self.client_address) 
-                                # TODO: Create last_values_received as global variable      
-                        else:
-                                print("Unknown message: ",data)
-
-class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
+                        # elif data == "getValues()": # Sent last value received from micro-controller
+                        #         socket.sendto(LAST_VALUE, self.client_address)
+                        #         global last_value_received
+                        #         # TODO: Create last_values_received as global variable
+                                      
+                        # else:
+                        #         print("Unknown message: ",data)
+                
+class ThreadedUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
     pass
 
 
 # send serial message 
-SERIALPORT = "/dev/ttyUSB0"
+SERIALPORT = "com1"
 BAUDRATE = 115200
 ser = serial.Serial()
 
@@ -56,7 +59,7 @@ def initUART():
         ser.rtscts = False     #disable hardware (RTS/CTS) flow control
         ser.dsrdtr = False       #disable hardware (DSR/DTR) flow control
         #ser.writeTimeout = 0     #timeout for write
-        print 'Starting Up Serial Monitor'
+        print("Starting Up Serial Monitor")
         try:
                 ser.open()
         except serial.SerialException:
@@ -67,7 +70,6 @@ def initUART():
 
 def sendUARTMessage(msg):
     ser.write(msg)
-    print("Message <" + msg + "> sent to micro-controller." )
 
 
 # Main program logic follows:
@@ -88,7 +90,8 @@ if __name__ == '__main__':
                         # time.sleep(100)
                         if (ser.inWaiting() > 0): # if incoming bytes are waiting 
                                 data_str = ser.read(ser.inWaiting()) 
-                                f.write(data_str)
+                                x = data_str.decode("utf-8")
+                                f.write(x)
                                 LAST_VALUE = data_str
                                 print(data_str)
         except (KeyboardInterrupt, SystemExit):
