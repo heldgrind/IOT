@@ -23,17 +23,14 @@ class ThreadedUDPRequestHandler(socketserver.BaseRequestHandler):
         current_thread = threading.current_thread()
         print("{}: client: {}, wrote: {}".format(current_thread.name, self.client_address, data))
         if data != "":
-                        socket.sendto(data.upper(), self.client_address)
-                        # if data in MICRO_COMMANDS: # Send message through UART
-                        #         sendUARTMessage(data)
+                if data in MICRO_COMMANDS: # Send message through UART
+                                sendUARTMessage(data)
                                 
-                        # elif data == "getValues()": # Sent last value received from micro-controller
-                        #         socket.sendto(LAST_VALUE, self.client_address)
-                        #         global last_value_received
-                        #         # TODO: Create last_values_received as global variable
-                                      
-                        # else:
-                        #         print("Unknown message: ",data)
+                elif data == "getValues()": # Sent last value received from micro-controller
+                                socket.sendto(LAST_VALUE, self.client_address) 
+                                # TODO: Create last_values_received as global variable      
+                else:
+                                print("Unknown message: ",data)
                 
 class ThreadedUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
     pass
@@ -90,8 +87,7 @@ if __name__ == '__main__':
                         # time.sleep(100)
                         if (ser.inWaiting() > 0): # if incoming bytes are waiting 
                                 data_str = ser.read(ser.inWaiting()) 
-                                x = data_str.decode("utf-8")
-                                f.write(x)
+                                f.write(data_str)
                                 LAST_VALUE = data_str
                                 print(data_str)
         except (KeyboardInterrupt, SystemExit):
