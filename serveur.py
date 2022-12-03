@@ -9,7 +9,7 @@ import socketserver
 import serial
 import threading
 
-HOST           = "127.0.0.1"
+HOST           = "192.168.1.24"
 UDP_PORT       = 10000
 MICRO_COMMANDS = ["TL" , "LT"]
 FILENAME        = "values.txt"
@@ -24,9 +24,9 @@ class ThreadedUDPRequestHandler(socketserver.BaseRequestHandler):
         print("{}: client: {}, wrote: {}".format(current_thread.name, self.client_address, data))
         if data != "":
                 if data in MICRO_COMMANDS: # Send message through UART
-                        sendUARTMessage(data)
+                        sendUARTMessagSe(data)
                         
-                elif data == "getValues()": # Sent last value received from micro-controller
+                elif data.decode() == "getValues()": # Sent last value received from micro-controller
                         socket.sendto(LAST_VALUE, self.client_address) 
                         # TODO: Create last_values_received as global variable      
                 else:
@@ -37,7 +37,7 @@ class ThreadedUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
 
 
 # send serial message 
-SERIALPORT = "/dev/ttyACM0"
+SERIALPORT = "/dev/pts/2"
 BAUDRATE = 115200
 ser = serial.Serial()
 
@@ -70,6 +70,7 @@ def initUART():
 def sendUARTMessage(msg):
     ser.write(msg)
 
+#socat -d -d pty,raw,echo=0 pty,raw,echo=0
 
 # Main program logic follows:
 if __name__ == '__main__':
@@ -89,7 +90,7 @@ if __name__ == '__main__':
                         # time.sleep(100)
                         if (ser.inWaiting() > 0): # if incoming bytes are waiting 
                                 data_str = ser.read(ser.inWaiting()) 
-                                f.write(data_str)
+                                f.write(data_str.decode("utf-8"))
                                 LAST_VALUE = data_str
                                 print(data_str)
         except (KeyboardInterrupt, SystemExit):

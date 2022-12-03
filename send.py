@@ -7,7 +7,7 @@ import socketserver
 import serial
 import threading
 
-SERIALPORT = "com2"
+SERIALPORT = "/dev/pts/3"
 BAUDRATE = 115200
 ser = serial.Serial()
 
