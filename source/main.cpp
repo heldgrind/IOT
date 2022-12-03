@@ -27,16 +27,33 @@ DEALINGS IN THE SOFTWARE.
 
 MicroBit uBit;
 MicroBitThermometer thermometer;
+MicroBitSerial serial(USBTX, USBRX); // tx, rx
 
 void onData(MicroBitEvent)
 {
+    
+    PacketBuffer b(16);
+    b = uBit.radio.datagram.recv();
+    
+
     int temperature;
     int humidity;
-    PacketBuffer b;
-    b = uBit.radio.datagram.recv();
-    temperature = b[0];
-    humidity = b[1];
+
+    ////////////////////////////////////////////////////////////
+    //sudo minicom -D /dev/ttyACM0 -b 115200
+    ////////////////////////////////////////////////////////////
+    memcpy(&temperature, b.getBytes(), 4); // 4 Octets 
+    for (int i = 0; i < 4; i++) { // 4 Octets 
+        memcpy(&humidity, &b[i+4], 4); // 1 octets 
+    }
+
     uBit.display.scroll(temperature);
+    uBit.display.scroll(humidity);
+
+
+    ManagedString s = ManagedString(temperature );
+    //uBit.serial.printf("Temperature: %d\n", temperature);
+    uBit.serial.send(temperature);
 }
 int main()
 {
@@ -50,6 +67,7 @@ int main()
     while (1)
     {
         uBit.sleep(1000);
+        uBit.messageBus.listen(MICROBIT_ID_RADIO, MICROBIT_RADIO_EVT_DATAGRAM, onData);
     }
     
 }
