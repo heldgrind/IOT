@@ -9,11 +9,7 @@ import socketserver
 import serial
 import threading
 
-
-
-
-
-HOST           = "localhost"
+HOST           = "127.0.0.1"
 UDP_PORT       = 10000
 MICRO_COMMANDS = ["TL" , "LT"]
 FILENAME        = "values.txt"
@@ -73,7 +69,6 @@ def initUART():
 
 def sendUARTMessage(msg):
     ser.write(msg)
-    print("Message <" + msg + "> sent to micro-controller." )
 
 
 # Main program logic follows:
