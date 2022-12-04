@@ -9,9 +9,9 @@ import socketserver
 import serial
 import threading
 
-HOST           = "192.168.1.24"
+HOST           = "10.3.136.77"
 UDP_PORT       = 10000
-MICRO_COMMANDS = ["TL" , "LT"]
+MICRO_COMMANDS = ["TH" , "HT"]
 FILENAME        = "values.txt"
 LAST_VALUE      = ""
 
@@ -23,8 +23,9 @@ class ThreadedUDPRequestHandler(socketserver.BaseRequestHandler):
         current_thread = threading.current_thread()
         print("{}: client: {}, wrote: {}".format(current_thread.name, self.client_address, data))
         if data != "":
-                if data in MICRO_COMMANDS: # Send message through UART
-                        sendUARTMessagSe(data)
+                if data.decode() in MICRO_COMMANDS: # Send message through UART
+                        sendUARTMessage(data)
+                        print("message envoyer au micro-controleur")
                         
                 elif data.decode() == "getValues()": # Sent last value received from micro-controller
                         socket.sendto(LAST_VALUE, self.client_address) 
