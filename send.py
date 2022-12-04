@@ -39,10 +39,13 @@ def sendUARTMessage(msg):
 
 if __name__ == '__main__':
         initUART()
-        test = "test"
-        message = test.encode()
-
+        temp = 0
+        hum = 0
+        
         while True:
+                temp = temp + 1
+                hum = hum + 1
+                message = ("temp: " + str(temp) +";"+" hum: " + str(hum)+";").encode()
                 sendUARTMessage(message)
                 time.sleep(1)
     
